@@ -176,6 +176,7 @@ def pretty_print(code):
             print(one)
             print(two)
     print(code[len(code)-1])
+
 #####################################################
 #           GRAY CODE GENERATION ALL ODD            #
 #####################################################
@@ -191,10 +192,11 @@ def generate_threaded_code(radices, code, n):
         return []
 
     radix_n = decimal_to_radix(radices, n)
-    # see if we need to flip for 4 radices
-    if in_bottom_ascending_sequence(code[1], radix_n):
-        code = flip_column(code, radices, 2)
 
+    # see if we need to flip
+    ascending = in_bottom_ascending_sequence(radices, n)
+    for i in ascending:
+        code = flip_column(code, radices, i)
     result = []
 
     # calculate start location
@@ -219,31 +221,40 @@ def generate_threaded_code(radices, code, n):
 
     return result
 
-# input: gray code and n as radix
-# output: whether the bottom __0 stop in an ascending sequence
-def in_bottom_ascending_sequence(code, n):
-    for i in range(len(code)):
-        # counting up from the bottom
-        first = code[len(code)-i-1]
-        second = code[len(code)-i-2]
+# input: gray code and n as decimal
+# output: an array of the col numbers that are in an ascending sequence
+def in_bottom_ascending_sequence(radices, n):
+    out = []
 
-        # reached end of 0 section
-        if second[len(second)-1] != '0':
-            return False
+    # find last number ending in 0 in code less than n
+    last_zero = -1
+    for i in range(n-1, 0, -1):
+        radix_n = decimal_to_radix(radices, i)
+        if radix_n[len(radix_n)-1] == '0':
+            last_zero = radix_n
+            break
 
-        if int(first) >= int(n) and int(second) < int(n):
-            return True
+    # loop through last zero and tally number sums
+    # if the sum is even, the col is ascending
+    col_sum = 0
+    for i, num in enumerate(last_zero):
+        if col_sum % 2 == 0 and 0 < i < len(last_zero)-1:
+            out.append(i)
+        col_sum += int(num)
+
+    return out
 
 # input: entire gray code, radices as tuple
 # output: code, but with the given column flipped
 #         columns are counted from the left, 0 indexed
 #         eg 0 -> 2 in radix of 3
 def flip_column(code, radices, col_num):
+    out = [[0 for i in range(len(code[0]))] for j in range(len(code))]
     radix = radices[col_num]
     for i in range(len(code[0])):
-        code[0][i] = code[0][i][:col_num] + str(radix-int(code[0][i][col_num])-1) + code[0][i][col_num+1:]
-        code[1][i] = code[1][i][:col_num] + str(radix-int(code[1][i][col_num])-1) + code[1][i][col_num+1:]
-    return code
+        out[0][i] = code[0][i][:col_num] + str(radix-int(code[0][i][col_num])-1) + code[0][i][col_num+1:]
+        out[1][i] = code[1][i][:col_num] + str(radix-int(code[1][i][col_num])-1) + code[1][i][col_num+1:]
+    return out
 
 # input: gray code and n as radix number
 # output: if the gray code should start going right or left
@@ -416,7 +427,8 @@ if __name__ == "__main__":
         out = generate_three_parts(radix, n)
         valid = valid_codewords(radix, out, n) and valid_gray_code(radix, out)
     """
-    radix = (2,3,3,3,3)
+    radix = (2,3,5,7,9)
+
     the_code = generate_entire_reflected_code(radix)
 
     # calculate boundaries of test
@@ -428,18 +440,12 @@ if __name__ == "__main__":
     for n in range((int(mult/radix[0])+2) | 1, mult, 2):
         print('N', n)
         new_code = generate_threaded_code(radix, the_code, n)
-
         # check validity
         valid = valid_codewords(radix, new_code, n) and valid_gray_code(radix, new_code)
         print(valid)
-"""
-    n = 93
-    new_code = generate_threaded_code(radix, the_code, n)
-    print(new_code)
-    valid = valid_codewords(radix, new_code, n) and valid_gray_code(radix, new_code)
-    print(valid)
-"""
+        if not valid:
+            print(new_code)
+        print(' ')
 
-# TODO: 5 radices, with all odd
 # TODO: 3 radices inner ring edge case
 # TODO: 3 radices 2, even, odd
