@@ -350,13 +350,12 @@ def generate_outer_left_cycle(radices, ring_num):
 
 # input: radices and n as decimal, start and end numbers of right path
 # output: the left side of the gray code path
-def generate_left_path(radices, n, start, end):
-    # TODO: edge case of inner ring
+def generate_left_path(radices, start, end):
     # make the right numbers
     right = [str(i) for i in range(radices[len(radices)-1])]
 
-    # put the last number in front
     start_on_zero = True
+    # put the last number in front if gray code is reflected
     if int(start[len(start)-1]) == radices[len(radices)-1]-1:
         start_on_zero = False
     if not start_on_zero: right.insert(0, right.pop())
@@ -395,6 +394,50 @@ def generate_left_path(radices, n, start, end):
     result.extend(arm[::-1])
     return result
 
+# input: radices and n as decimal, start and end numbers of right path
+#        special case while working through inner ring
+# output: the left side of the gray code path
+# todo: possibly combine with other left path code above?
+def generate_left_path_special(radices, start, end):
+    # make the right numbers
+    right = [str(i) for i in range(radices[len(radices) - 1])]
+
+    # flip all numbers after 0 bc going counterclockwise
+    right[1:len(right)] = right[len(right) - 1:0:-1]
+
+    # made 2 col grid of inner two rings
+    grid = []
+    ring = 1
+
+    for i in right:
+        grid.append([])
+        for j in range(ring + 1):
+            grid[len(grid) - 1].append('0' + str(j) + i)
+
+    # thread through the columns
+    result = []
+    arm = []
+    right = True                # direction we are traveling in
+    skip_left = False
+    for row in grid:
+        # need to skip leftmost col
+        if row[0][1:] == end[1:]: skip_left = True
+
+        # going down right row
+        if skip_left:
+            result.append(row[1])
+            arm.append(row[0])
+            continue
+
+        # alternate adding whole rows
+        if right: result.extend(row)
+        else: result.extend(row[::-1])
+
+        right = not right
+
+    result.extend(arm[::-1])
+    return result
+
 # input: radices and n as decimal
 # output: the three parts of the gray code
 def generate_three_parts(radices, n):
@@ -402,7 +445,10 @@ def generate_three_parts(radices, n):
     ring = decimal_to_radix(radices, n-1)[1:2]
     if ring == '0': ring = 1
     outer_cycle = generate_outer_left_cycle(radices, int(ring)+1)
-    inner_cycle = generate_left_path(radices, n, right[0], right[len(right)-1])
+
+    # special case for inner ring path on left
+    if right[len(right)-1][1:2] == '0': inner_cycle = generate_left_path_special(radices, right[0], right[len(right)-1])
+    else:inner_cycle = generate_left_path(radices, right[0], right[len(right)-1])
 
     inner_cycle.extend(right[::-1])
 
@@ -443,14 +489,18 @@ def combine_cycles(inner, outer):
 #####################################################
 
 if __name__ == "__main__":
-    """
+    radix = (2,6,9)
+
     mult = 1
     for num in radix: mult *= num
     for n in range((int(mult / radix[0]) + 2) | 1, mult, 2):
+        print('N', n)
         out = generate_three_parts(radix, n)
         valid = valid_codewords(radix, out, n) and valid_gray_code(radix, out)
+        print(valid)
+        print(' ')
+
     """
-    radix = (2,5,11,3,7)
     the_code = generate_entire_reflected_code(radix)
 
     # calculate boundaries of test
@@ -462,10 +512,9 @@ if __name__ == "__main__":
     for n in range((int(mult/radix[0])+2) | 1, mult, 2):
         print('N', n)
         new_code = generate_threaded_code(radix, the_code, n)
-        # check validity
-        valid = valid_codewords(radix, new_code, n) and valid_gray_code(radix, new_code)
-        print(valid)
-        print(' ')
 
-# TODO: 3 radices inner ring edge case
+        valid = valid_codewords(radix, new_code, n) and valid_gray_code(radix, new_code)
+    """
+
+# TODO: 3 radices, one odd, numbers 11+
 # TODO: 3 radices 2, even, odd
