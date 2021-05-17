@@ -1,10 +1,10 @@
+import copy
 #####################################################
 #          RADIX CALCULATION OPERATIONS             #
 #####################################################
 
 # input: a radix tuple and a decimal number
-# output: the number converted to the given radix as a string
-#         if radix > 0, lowercase letters are used
+# output: the number converted to the given radix as an array
 def decimal_to_radix(radices, num):
     # check if number too big or small
     largest = 1
@@ -13,13 +13,13 @@ def decimal_to_radix(radices, num):
         print('num is out of range of the radix')
         return -1
 
-    result = ''
+    result = []
     for base in radices[::-1]:
-        result = decimal_to_letter(num % base) + result
+        result.insert(0, num % base)
         num = num // base
     return result
 
-# input: a radix tuple and a mixed-radix number as string
+# input: a radix tuple and a mixed-radix number as list
 # output: the number converted to decimal
 def radix_to_decimal(radices, num):
     # calculate value of each digit place
@@ -29,7 +29,7 @@ def radix_to_decimal(radices, num):
 
     result = 0
     for i, digit in enumerate(num):
-        result += letter_to_decimal(digit) * values[i]
+        result += digit * values[i]
     return result
 
 # input: decimal number
@@ -39,22 +39,19 @@ def decimal_to_letter(num):
     if num >= 10: return chr(num + 87)
     else: return str(num)
 
-# input: character
-# output: int value of character (0-9 -> 0-9 and a-z -> 10-36)
-def letter_to_decimal(char):
-    if char.isalpha(): return ord(char) - 87
-    else: return int(char)
-
 #####################################################
 #              GRAY CODE VALIDATION                 #
 #####################################################
 
-# input: radix tuple and gray code as a list of strings
+# input: radix tuple and gray code as a list of lists
 # output: boolean if code has all of the correct numbers
-#         (doesn't check gray code property
+#         (doesn't check gray code property)
 def valid_codewords(radices, code, n):
     # change array into set
-    code_nums = set(code)
+    # convert list for each codeword into string
+    code_nums = set()
+    for num in code:
+        code_nums.add(''.join(str(i) for i in num))
 
     # check length of code
     if n != len(code_nums):
@@ -64,12 +61,13 @@ def valid_codewords(radices, code, n):
     # search for each number under n in code
     for i in range(n):
         codeword = decimal_to_radix(radices, i)
+        codeword = ''.join(str(c) for c in codeword)
         if codeword not in code_nums:
             print(codeword, 'not in gray code')
             return False
     return True
 
-# input: radix tuple and gray code as a list of strings
+# input: radix tuple and gray code as a list of lists
 # output: boolean if code fulfills gray code property
 def valid_gray_code(radices, code):
     for i, first in enumerate(code):
@@ -86,7 +84,7 @@ def valid_gray_code(radices, code):
                 return False
     return True
 
-# input: radix tuple and two adjacent numbers in gray code as strings
+# input: radix tuple and two adjacent numbers in gray code as lists
 # output: boolean if two numbers satisfy gray code property
 def valid_neighbors(radices, first, second):
     # codewords not same length
@@ -100,18 +98,12 @@ def valid_neighbors(radices, first, second):
     for i, (one, two) in enumerate(zip(first, second)):
         # the same
         if one == two: continue
-
-        # if letters, make into numbers
-        res_one = letter_to_decimal(one)
-        res_two = letter_to_decimal(two)
-
         # off by one
-        if abs(res_one-res_two) == 1:
+        if abs(one-two) == 1:
             diff += 1
             continue
-
         # wrap around radix
-        if (res_one == 0 and res_two == radices[i]-1) or (res_two == 0 and res_one == radices[i]-1):
+        if (one == 0 and two == radices[i]-1) or (two == 0 and one == radices[i]-1):
             diff += 1
         # too far off, wrong
         else: return False
@@ -124,16 +116,14 @@ def valid_neighbors(radices, first, second):
 #####################################################
 
 # input: a radix tuple
-# output: list of the reflected gray code as strings without the 0/1 at the front
+# output: list of the reflected gray code as arrays without the 0/1 at the front
 def generate_reflected_code(radices):
     old_result = []
     new_result = []
 
     # compute gray code for rightmost radix
     for i in range(radices[len(radices)-1]):
-        if i >= 10: res = chr(i + 87)
-        else: res = str(i)
-        old_result.append(res)
+        old_result.append([i])
 
     # iteratively add other radices from right to left (excluding right and left most)
     for radix in radices[len(radices)-2:0:-1]:
@@ -141,15 +131,12 @@ def generate_reflected_code(radices):
 
         # prepend new radix to all numbers
         for i in range(radix):
-            # take care of the letters
-            if i >= 10: res = chr(i + 87)
-            else: res = str(i)
             if ascending:
                 for old in old_result:
-                    new_result.append(res + old)
+                    new_result.append([i] + old)
             else:
                 for old in old_result[::-1]:
-                    new_result.append(res + old)
+                    new_result.append([i] + old)
             ascending = not ascending
 
         old_result = new_result
@@ -164,43 +151,29 @@ def move_zeros_to_bottom(code):
 
     # move
     for num in code[::-1]:
-        if num[len(num)-1] == '0': result.append(num)
+        if num[len(num)-1] == 0: result.append(num)
         else: result.insert(0, num)
 
     return result
 
 # input: tuple of radices
-# output: two arrays of columns as seen for 2,odd,odd
+# output: two gray code columns, one with 0 and one with 1 in front
 def generate_entire_reflected_code(radices):
     code = generate_reflected_code(radices)
     code = move_zeros_to_bottom(code)
     # prepend 0 and 1 to all numbers
-    left = ['0' + num for num in code]
-    right = ['1' + num for num in code]
+    left = [[0] + num for num in code]
+    right = [[1] + num for num in code]
 
     return [left, right]
 
-# input: a gray code
-# output: prints the gray code in a nice format
-# A FAILURE FOR NOW
+# input: gray code as list of lists
+# output: return gray code as strings, with letters for numbers > 10
 def pretty_print(code):
-    for i in range(0, len(code)-1, 2):
-        one = code[i]
-        two = code[i+1]
-        #print(one, two)
-
-        # going right
-        if one[0] == '0' and two[0] == '1':
-            print(one, '\t', two)
-        # going left
-        elif one[0] == '1' and two[0] == '0':
-            print(two, '\t', one)
-        # going down
-        else:
-            print(one)
-            print(two)
-    print(code[len(code)-1])
-
+    out = []
+    for num in code:
+        out.append(''.join(decimal_to_letter(s) for s in num))
+    return out
 #####################################################
 #           GRAY CODE GENERATION ALL ODD            #
 #####################################################
@@ -215,12 +188,11 @@ def generate_threaded_code(radices, code, n):
         print('n is out of range of the radix')
         return []
 
-    radix_n = decimal_to_radix(radices, n)
-
     # see if we need to flip
     ascending = in_bottom_ascending_sequence(radices, n)
     for i in ascending:
         code = reflect_column(code, radices, i)
+
     result = []
 
     # calculate start location
@@ -254,7 +226,7 @@ def in_bottom_ascending_sequence(radices, n):
     last_zero = -1
     for i in range(n-1, 0, -1):
         radix_n = decimal_to_radix(radices, i)
-        if radix_n[len(radix_n)-1] == '0':
+        if radix_n[len(radix_n)-1] == 0:
             last_zero = radix_n
             break
 
@@ -264,19 +236,19 @@ def in_bottom_ascending_sequence(radices, n):
     for i, num in enumerate(last_zero):
         if col_sum % 2 == 0 and 0 < i < len(last_zero)-1:
             out.append(i)
-        col_sum += letter_to_decimal(num)
+        col_sum += num
 
     return out
 
-# input: entire gray code, radices as tuple
+# input: entire gray code as list of lists, radices as tuple
 # output: code, but with the given column reflected
 #         columns are counted from the left, 0 indexed
 def reflect_column(code, radices, col_num):
-    out = [[0 for i in range(len(code[0]))] for j in range(len(code))]
-    radix = radices[col_num]
+    out = copy.deepcopy(code)
     for i in range(len(code[0])):
-        out[0][i] = code[0][i][:col_num] + decimal_to_letter(radix-letter_to_decimal(code[0][i][col_num])-1) + code[0][i][col_num+1:]
-        out[1][i] = code[1][i][:col_num] + decimal_to_letter(radix-letter_to_decimal(code[1][i][col_num])-1) + code[1][i][col_num+1:]
+        out[0][i][col_num] = radices[col_num] - code[0][i][col_num] - 1
+        out[1][i][col_num] = radices[col_num] - code[1][i][col_num] - 1
+
     return out
 
 # input: gray code and n as decimal number
@@ -286,24 +258,24 @@ def calculate_start_direction(code, radices, n):
 
     # iterate over numbers ending in 0 at bottom of code
     for num in code[::-1]:
-        if num[len(num)-1] != '0': break
+        if num[len(num)-1] != 0: break
         elif radix_to_decimal(radices, num) < n:
             count += 1
     if count % 2 == 1: return True
     else: return False
 
 #####################################################
-#          GRAY CODE GENERATION ONE EVEN            #
+#           GRAY CODE GENERATION ONE ODD            #
 #####################################################
 # input: radices and n as decimal
-# output: the right side of the gray code (1__)
+# output: the right side of the gray code (1__) as a list of lists
 def generate_right_path(radices, n):
     code = generate_reflected_code(radices)
-    right = ['1' + num for num in code]
+    right = [[1] + num for num in code]
 
     # flip if in descending sequence
     if in_right_descending_sequence(radices, n):
-        right = flip_right_column(right, radices)
+        flip_right_column(right, radices)
 
     # calculate how much we need to return with n
     mult = 1
@@ -313,17 +285,16 @@ def generate_right_path(radices, n):
     return right[:n-mult]
 
 # input: entire gray code, radices as tuple
-# output: code, but with the rightmost column flipped
+# output: changes given code to reflect the rightmost column
 def flip_right_column(code, radices):
     col_num = len(radices)-1
-    radix = radices[col_num]
-    for i, num in enumerate(code):
-        code[i] = code[i][:col_num] + str(radix-int(code[i][col_num])-1)
-    return code
+    for i in range(len(code)):
+        code[i][col_num] = radices[col_num] - code[i][col_num] - 1
 
 # input: radices and n as decimal
 # output: whether the sequence ends in a descending sequence
 #         in the regular reflected gray code
+# todo: combine with ascending sequence code??
 def in_right_descending_sequence(radices, n):
     # it will be descending sequence if this is odd
     # might need to subtract the 1 for 4+ radices
@@ -335,39 +306,36 @@ def in_right_descending_sequence(radices, n):
 # output: the outer left cycle
 def generate_outer_left_cycle(radices, ring_num):
     code = generate_reflected_code(radices)
-    code = ['0' + num for num in code]
+    code = [[0] + num for num in code]
 
     code = move_zeros_to_bottom(code)
     result = []
 
-    # TODO: this is sort of hardcoded
     for num in code:
         # if we're in the right rings
-        if int(num[1:2]) >= ring_num:
+        if num[1] >= ring_num:
             result.append(num)
 
     return result
 
-# input: radices and n as decimal, start and end numbers of right path
+# input: radices and n as decimal, start and end numbers of right path as lists
 # output: the left side of the gray code path
 def generate_left_path(radices, start, end):
     # make the right numbers
-    right = [str(i) for i in range(radices[len(radices)-1])]
+    right = [i for i in range(radices[len(radices)-1])]
 
-    start_on_zero = True
     # put the last number in front if gray code is reflected
-    if int(start[len(start)-1]) == radices[len(radices)-1]-1:
-        start_on_zero = False
-    if not start_on_zero: right.insert(0, right.pop())
+    if start[len(start)-1] == radices[len(radices)-1]-1:
+        right.insert(0, right.pop(len(right)-1))
 
     # make the columns
     grid = []
-    ring = int(end[1:2])
+    ring = end[1]
 
     for i in right:
         grid.append([])
         for j in range(ring+1):
-            grid[len(grid)-1].append('0' + str(j) + i)
+            grid[len(grid)-1].append([0, j, i])
 
     # thread through the columns
     result = []
@@ -398,9 +366,9 @@ def generate_left_path(radices, start, end):
 #        special case while working through inner ring
 # output: the left side of the gray code path
 # todo: possibly combine with other left path code above?
-def generate_left_path_special(radices, start, end):
+def generate_left_path_special(radices, end):
     # make the right numbers
-    right = [str(i) for i in range(radices[len(radices) - 1])]
+    right = [i for i in range(radices[len(radices) - 1])]
 
     # flip all numbers after 0 bc going counterclockwise
     right[1:len(right)] = right[len(right) - 1:0:-1]
@@ -412,7 +380,7 @@ def generate_left_path_special(radices, start, end):
     for i in right:
         grid.append([])
         for j in range(ring + 1):
-            grid[len(grid) - 1].append('0' + str(j) + i)
+            grid[len(grid) - 1].append([0, j, i])
 
     # thread through the columns
     result = []
@@ -442,12 +410,12 @@ def generate_left_path_special(radices, start, end):
 # output: the three parts of the gray code
 def generate_three_parts(radices, n):
     right = generate_right_path(radices, n)
-    ring = decimal_to_radix(radices, n-1)[1:2]
-    if ring == '0': ring = 1
-    outer_cycle = generate_outer_left_cycle(radices, int(ring)+1)
+    ring = decimal_to_radix(radices, n-1)[1]
+    if ring == 0: ring = 1
+    outer_cycle = generate_outer_left_cycle(radices, ring+1)
 
     # special case for inner ring path on left
-    if right[len(right)-1][1:2] == '0': inner_cycle = generate_left_path_special(radices, right[0], right[len(right)-1])
+    if right[len(right)-1][1] == 0: inner_cycle = generate_left_path_special(radices, right[len(right)-1])
     else:inner_cycle = generate_left_path(radices, right[0], right[len(right)-1])
 
     inner_cycle.extend(right[::-1])
@@ -470,8 +438,8 @@ def combine_cycles(inner, outer):
         two = outer[i+1]
 
         # find numbers in inner cycle
-        index_one = inner.index(one[0] + str(int(one[1])-1) + one[2])
-        index_two = inner.index(two[0] + str(int(two[1])-1) + two[2])
+        index_one = inner.index([one[0], one[1]-1, one[2]])
+        index_two = inner.index([two[0], two[1]-1, two[2]])
 
         # numbers are next to each other, we can connect
         if index_one - index_two == 1:
@@ -484,37 +452,54 @@ def combine_cycles(inner, outer):
 
     return result
 
+# input: gray code ast list of lists
+# output: gray code, with given columns (0-indexed) swapped
+def swap_columns(code, col1, col2):
+    for num in code:
+        num[col1], num[col2] = num[col2], num[col1]
+
 #####################################################
 #                GRAY CODE TESTING                  #
 #####################################################
-
 if __name__ == "__main__":
-    radix = (2,6,9)
+    radix = (2,15,6)
 
+    # calculate boundaries of test and count odd radices
     mult = 1
-    for num in radix: mult *= num
-    for n in range((int(mult / radix[0]) + 2) | 1, mult, 2):
-        print('N', n)
-        out = generate_three_parts(radix, n)
-        valid = valid_codewords(radix, out, n) and valid_gray_code(radix, out)
-        print(valid)
-        print(' ')
-
-    """
-    the_code = generate_entire_reflected_code(radix)
-
-    # calculate boundaries of test
-    mult = 1
+    odd = 0
     for num in radix:
         mult *= num
+        if num % 2 == 1: odd += 1
 
-    # test all n
-    for n in range((int(mult/radix[0])+2) | 1, mult, 2):
-        print('N', n)
-        new_code = generate_threaded_code(radix, the_code, n)
+    # all odd radices ex: 2,5,7,13
+    if odd == len(radix) - 1:
+        the_code = generate_entire_reflected_code(radix)
 
-        valid = valid_codewords(radix, new_code, n) and valid_gray_code(radix, new_code)
-    """
+        for n in range((int(mult/radix[0])+2) | 1, mult, 2):
+            print('N', n)
+            new_code = generate_threaded_code(radix, the_code, n)
+            valid = valid_codewords(radix, new_code, n) and valid_gray_code(radix, new_code)
+            print(valid)
+            print(' ')
 
-# TODO: 3 radices, one odd, numbers 11+
-# TODO: 3 radices 2, even, odd
+    # one odd one even ex: 2,7,4 or 2,7,4
+    elif odd == 1 and len(radix) == 3:
+        for n in range((int(mult/radix[0])+2) | 1, mult, 2):
+            print('N', n)
+
+            # middle number odd case
+            if radix[1] % 2 == 1: radix = (radix[0], radix[2], radix[1])
+
+            out = generate_three_parts(radix, n)
+
+            # middle number odd case
+            if radix[1] % 2 == 1: swap_columns(out, 1, 2)
+
+            valid = valid_codewords(radix, out, n) and valid_gray_code(radix, out)
+            print(valid)
+            print(' ')
+
+    # all other cases
+    else:
+        print('the functionality for these radices is not supported')
+        print('stay tuned for future implementation')
