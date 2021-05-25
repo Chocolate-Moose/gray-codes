@@ -275,7 +275,7 @@ def generate_right_path(radices, n):
 
     # flip if in descending sequence
     if in_right_descending_sequence(radices, n):
-        flip_right_column(right, radices)
+        reflect_single_column(right, radices, len(radices)-1)
 
     # calculate how much we need to return with n
     mult = 1
@@ -285,9 +285,8 @@ def generate_right_path(radices, n):
     return right[:n-mult]
 
 # input: entire gray code, radices as tuple
-# output: changes given code to reflect the rightmost column
-def flip_right_column(code, radices):
-    col_num = len(radices)-1
+# output: reflects given column of code, changes given list
+def reflect_single_column(code, radices, col_num):
     for i in range(len(code)):
         code[i][col_num] = radices[col_num] - code[i][col_num] - 1
 
@@ -304,16 +303,38 @@ def in_right_descending_sequence(radices, n):
 
 # input: radices, n as decimal, ring number (020)
 # output: the outer left cycle
-def generate_outer_left_cycle(radices, ring_num):
+def generate_outer_left_cycle(radices, n):
+    # calculate value of the largest number in inner left cycle
+    largest_inner = decimal_to_radix(radices, n-1)
+    largest_inner[0] = 0
+    largest_inner[len(largest_inner)-1] = radices[len(radices)-1]-1
+
+    # special case for inner ring
+    # todo: this also happens in generate three parts
+    special = True
+    for num in largest_inner[:len(largest_inner)-1]:
+        if num != 0: special = False
+    if special: largest_inner[len(largest_inner)-2] = 1
+
     code = generate_reflected_code(radices)
     code = [[0] + num for num in code]
 
     code = move_zeros_to_bottom(code)
+
+    # see if we need to reflect rows
+    # todo: this happens in the all odd radix cases too, make into method
+    ascending = in_bottom_ascending_sequence(radices, n)
+
+    for i in ascending:
+        reflect_single_column(code, radices, i)
+
     result = []
 
+    max_decimal = radix_to_decimal(radices, largest_inner)
+
     for num in code:
-        # if we're in the right rings
-        if num[1] >= ring_num:
+        # numbers need to be larger than inner ring
+        if radix_to_decimal(radices, num) > max_decimal:
             result.append(num)
 
     return result
@@ -336,6 +357,8 @@ def generate_left_path(radices, start, end):
         grid.append([])
         for j in range(ring+1):
             grid[len(grid)-1].append([0, j, i])
+
+    print((grid))
 
     # thread through the columns
     result = []
@@ -410,14 +433,18 @@ def generate_left_path_special(radices, end):
 # output: the three parts of the gray code
 def generate_three_parts(radices, n):
     right = generate_right_path(radices, n)
-    ring = decimal_to_radix(radices, n-1)[1]
-    if ring == 0: ring = 1
-    outer_cycle = generate_outer_left_cycle(radices, ring+1)
+
+    outer_cycle = generate_outer_left_cycle(radices, n)
 
     # special case for inner ring path on left
-    if right[len(right)-1][1] == 0: inner_cycle = generate_left_path_special(radices, right[len(right)-1])
+    special = True
+    for num in decimal_to_radix(radices, n)[:len(radices) - 1]:
+        if num != 0: special = False
+
+    if special: inner_cycle = generate_left_path_special(radices, right[len(right)-1])
     else:inner_cycle = generate_left_path(radices, right[0], right[len(right)-1])
 
+    print(pretty_print(inner_cycle))
     inner_cycle.extend(right[::-1])
 
     result = combine_cycles(inner_cycle, outer_cycle)
@@ -462,7 +489,7 @@ def swap_columns(code, col1, col2):
 #                GRAY CODE TESTING                  #
 #####################################################
 if __name__ == "__main__":
-    radix = (2,15,6)
+    radix = (2,4,3,5)
 
     # calculate boundaries of test and count odd radices
     mult = 1
@@ -482,22 +509,28 @@ if __name__ == "__main__":
             print(valid)
             print(' ')
 
-    # one odd one even ex: 2,7,4 or 2,7,4
+    # one even one odd ex: 2,4,7
     elif odd == 1 and len(radix) == 3:
         for n in range((int(mult/radix[0])+2) | 1, mult, 2):
             print('N', n)
 
-            # middle number odd case
-            if radix[1] % 2 == 1: radix = (radix[0], radix[2], radix[1])
-
             out = generate_three_parts(radix, n)
-
-            # middle number odd case
-            if radix[1] % 2 == 1: swap_columns(out, 1, 2)
 
             valid = valid_codewords(radix, out, n) and valid_gray_code(radix, out)
             print(valid)
             print(' ')
+
+    # working on the 4 radix 1 even 2 odd case
+    elif len(radix) == 4:
+        n = 71
+        #for n in range((int(mult / radix[0]) + 2) | 1, mult, 2):
+        print('N', n)
+
+        out = generate_three_parts(radix, n)
+
+        valid = valid_codewords(radix, out, n) and valid_gray_code(radix, out)
+        print(valid)
+        print(' ')
 
     # all other cases
     else:
