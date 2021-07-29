@@ -265,7 +265,7 @@ def calculate_start_direction(code, radices, n):
     else: return False
 
 #####################################################
-#           GRAY CODE GENERATION ONE ODD            #
+#           GRAY CODE GENERATION EVEN ODD           #
 #####################################################
 # input: radices and n as decimal
 # output: the right side of the gray code (1__) as a list of lists
@@ -486,10 +486,72 @@ def swap_columns(code, col1, col2):
         num[col1], num[col2] = num[col2], num[col1]
 
 #####################################################
+#           GRAY CODE GENERATION ODD EVEN           #
+#####################################################
+# input: radices
+# output: the two templates for this radix
+def generate_template(radices):
+    # generates bottom grid
+    grid = []
+    for i in range(radices[2]):
+        grid.append([])
+        for j in range(radices[1]-1, -1, -1):
+            grid[len(grid)-1].append([0, j, i])
+
+    # move rightmost column to left
+    for i in range(len(grid)):
+        grid[i].insert(0, grid[i].pop(len(grid[i]) - 1))
+
+    one = []
+    two = []
+    # thread through grid to make template
+    count = 0
+    # inner ring
+    for i in range(len(grid[0])):
+        one.append(grid[count][i])
+        two.append(grid[count][len(grid[0]) - i - 1])
+        count = (count + 1) % 2
+        one.append(grid[count][i])
+        two.append(grid[count][len(grid[0]) - i - 1])
+
+    # add outer rows
+    count = 1
+    for i in range(2, len(grid)):
+        if count == 1:
+            one.extend(grid[i][::-1])
+            two.extend(grid[i])
+        else:
+            one.extend(grid[i])
+            two.extend(grid[i][::-1])
+        count = (count + 1) % 2
+    return one, two
+
+# inputs: radices and n as decimal number
+# output: the right side of the gray code as list of lists
+def generate_right_side(radices, n):
+    one, two = generate_template(radices)
+    radix_n = decimal_to_radix(radices, n)
+    out = []
+    # in the inner ring
+    if radix_n[1] == 0:
+        out = inner_ring_case(one, radix_n)
+
+# input: template starting at 000 and n as radix representation
+# output: right side for this gray code
+def inner_ring_case(template, radix_n):
+    out = []
+
+    # loop through template backwards
+    for num in template:
+        # on the first column, if number >= radix, add it to the back
+        pass;
+        # else add the number to the front
+
+#####################################################
 #                GRAY CODE TESTING                  #
 #####################################################
 if __name__ == "__main__":
-    radix = (2,4,3,5)
+    radix = (2,5,6)
 
     # calculate boundaries of test and count odd radices
     mult = 1
@@ -510,7 +572,7 @@ if __name__ == "__main__":
             print(' ')
 
     # one even one odd ex: 2,4,7
-    elif odd == 1 and len(radix) == 3:
+    elif odd == 1 and len(radix) == 3 and radix[1] % 2 == 0:
         for n in range((int(mult/radix[0])+2) | 1, mult, 2):
             print('N', n)
 
@@ -520,7 +582,13 @@ if __name__ == "__main__":
             print(valid)
             print(' ')
 
-    # working on the 4 radix 1 even 2 odd case
+    # one odd one even eg. 2,7,4
+    elif odd == 1 and len(radix) == 3 and radix[1] % 2 == 1:
+        for n in range((int(mult/radix[0])+2) | 1, mult, 2):
+            print('N', n)
+            generate_template(radix)
+
+        # working on the 4 radix 1 even 2 odd case
     elif len(radix) == 4:
         n = 71
         #for n in range((int(mult / radix[0]) + 2) | 1, mult, 2):
