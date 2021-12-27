@@ -1,4 +1,5 @@
 import copy
+import sys
 #####################################################
 #          RADIX CALCULATION OPERATIONS             #
 #####################################################
@@ -174,6 +175,16 @@ def pretty_print(code):
     for num in code:
         out.append(''.join(decimal_to_letter(s) for s in num))
     return out
+
+# input: gray code radix as a list
+# output: string of gray code radices formatted
+def pretty_print_radix(radices):
+    out = '(' + str(radices[0])
+    for r in radices[1:]:
+        out += ', ' + str(r)
+    out += ')'
+    return out
+
 #####################################################
 #           GRAY CODE GENERATION ALL ODD            #
 #####################################################
@@ -551,25 +562,27 @@ def inner_ring_case(template, radix_n):
 #                GRAY CODE TESTING                  #
 #####################################################
 if __name__ == "__main__":
-    radix = (2,5,6)
+    # read in radices and n from the command line
+    radix = []
+    for num in sys.argv[1:len(sys.argv) - 1]:
+        radix.append(int(num))
+    n = int(sys.argv[len(sys.argv) - 1])
 
-    # calculate boundaries of test and count odd radices
-    mult = 1
-    odd = 0
-    for num in radix:
-        mult *= num
-        if num % 2 == 1: odd += 1
+    # count odd radices
+    odd = sum(1 if x % 2 == 1 else 0 for x in radix)
 
     # all odd radices ex: 2,5,7,13
     if odd == len(radix) - 1:
         the_code = generate_entire_reflected_code(radix)
 
-        for n in range((int(mult/radix[0])+2) | 1, mult, 2):
-            print('N', n)
-            new_code = generate_threaded_code(radix, the_code, n)
-            valid = valid_codewords(radix, new_code, n) and valid_gray_code(radix, new_code)
-            print(valid)
-            print(' ')
+        print(pretty_print_radix(radix), n)
+        new_code = generate_threaded_code(radix, the_code, n)
+        out = pretty_print(new_code)
+
+        for num in out: print(num)
+        valid = valid_codewords(radix, new_code, n) and valid_gray_code(radix, new_code)
+        print(valid)
+        print(' ')
 
     # one even one odd ex: 2,4,7
     elif odd == 1 and len(radix) == 3 and radix[1] % 2 == 0:
@@ -577,6 +590,8 @@ if __name__ == "__main__":
             print('N', n)
 
             out = generate_three_parts(radix, n)
+            out = pretty_print(out)
+            print(out)
 
             valid = valid_codewords(radix, out, n) and valid_gray_code(radix, out)
             print(valid)
