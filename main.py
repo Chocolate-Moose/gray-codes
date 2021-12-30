@@ -171,10 +171,8 @@ def generate_entire_reflected_code(radices):
 # input: gray code as list of lists
 # output: return gray code as strings, with letters for numbers > 10
 def pretty_print(code):
-    out = []
     for num in code:
-        out.append(''.join(decimal_to_letter(s) for s in num))
-    return out
+        print(''.join(decimal_to_letter(s) for s in num))
 
 # input: gray code radix as a list
 # output: string of gray code radices formatted
@@ -304,7 +302,6 @@ def reflect_single_column(code, radices, col_num):
 # input: radices and n as decimal
 # output: whether the sequence ends in a descending sequence
 #         in the regular reflected gray code
-# todo: combine with ascending sequence code??
 def in_right_descending_sequence(radices, n):
     # it will be descending sequence if this is odd
     # might need to subtract the 1 for 4+ radices
@@ -321,7 +318,6 @@ def generate_outer_left_cycle(radices, n):
     largest_inner[len(largest_inner)-1] = radices[len(radices)-1]-1
 
     # special case for inner ring
-    # todo: this also happens in generate three parts
     special = True
     for num in largest_inner[:len(largest_inner)-1]:
         if num != 0: special = False
@@ -333,7 +329,6 @@ def generate_outer_left_cycle(radices, n):
     code = move_zeros_to_bottom(code)
 
     # see if we need to reflect rows
-    # todo: this happens in the all odd radix cases too, make into method
     ascending = in_bottom_ascending_sequence(radices, n)
 
     for i in ascending:
@@ -369,8 +364,6 @@ def generate_left_path(radices, start, end):
         for j in range(ring+1):
             grid[len(grid)-1].append([0, j, i])
 
-    print((grid))
-
     # thread through the columns
     result = []
     arm = []
@@ -399,7 +392,6 @@ def generate_left_path(radices, start, end):
 # input: radices and n as decimal, start and end numbers of right path
 #        special case while working through inner ring
 # output: the left side of the gray code path
-# todo: possibly combine with other left path code above?
 def generate_left_path_special(radices, end):
     # make the right numbers
     right = [i for i in range(radices[len(radices) - 1])]
@@ -415,6 +407,8 @@ def generate_left_path_special(radices, end):
         grid.append([])
         for j in range(ring + 1):
             grid[len(grid) - 1].append([0, j, i])
+
+    print(grid)
 
     # thread through the columns
     result = []
@@ -449,15 +443,11 @@ def generate_three_parts(radices, n):
 
     # special case for inner ring path on left
     special = True
-    for num in decimal_to_radix(radices, n)[:len(radices) - 1]:
-        if num != 0: special = False
-
+    if decimal_to_radix(radices, n - 1)[1] != 0: special = False
     if special: inner_cycle = generate_left_path_special(radices, right[len(right)-1])
     else:inner_cycle = generate_left_path(radices, right[0], right[len(right)-1])
 
-    print(pretty_print(inner_cycle))
     inner_cycle.extend(right[::-1])
-
     result = combine_cycles(inner_cycle, outer_cycle)
 
     return result
@@ -497,76 +487,22 @@ def swap_columns(code, col1, col2):
         num[col1], num[col2] = num[col2], num[col1]
 
 #####################################################
-#           GRAY CODE GENERATION ODD EVEN           #
-#####################################################
-# input: radices
-# output: the two templates for this radix
-def generate_template(radices):
-    # generates bottom grid
-    grid = []
-    for i in range(radices[2]):
-        grid.append([])
-        for j in range(radices[1]-1, -1, -1):
-            grid[len(grid)-1].append([0, j, i])
-
-    # move rightmost column to left
-    for i in range(len(grid)):
-        grid[i].insert(0, grid[i].pop(len(grid[i]) - 1))
-
-    one = []
-    two = []
-    # thread through grid to make template
-    count = 0
-    # inner ring
-    for i in range(len(grid[0])):
-        one.append(grid[count][i])
-        two.append(grid[count][len(grid[0]) - i - 1])
-        count = (count + 1) % 2
-        one.append(grid[count][i])
-        two.append(grid[count][len(grid[0]) - i - 1])
-
-    # add outer rows
-    count = 1
-    for i in range(2, len(grid)):
-        if count == 1:
-            one.extend(grid[i][::-1])
-            two.extend(grid[i])
-        else:
-            one.extend(grid[i])
-            two.extend(grid[i][::-1])
-        count = (count + 1) % 2
-    return one, two
-
-# inputs: radices and n as decimal number
-# output: the right side of the gray code as list of lists
-def generate_right_side(radices, n):
-    one, two = generate_template(radices)
-    radix_n = decimal_to_radix(radices, n)
-    out = []
-    # in the inner ring
-    if radix_n[1] == 0:
-        out = inner_ring_case(one, radix_n)
-
-# input: template starting at 000 and n as radix representation
-# output: right side for this gray code
-def inner_ring_case(template, radix_n):
-    out = []
-
-    # loop through template backwards
-    for num in template:
-        # on the first column, if number >= radix, add it to the back
-        pass;
-        # else add the number to the front
-
-#####################################################
 #                GRAY CODE TESTING                  #
 #####################################################
-if __name__ == "__main__":
+def driver():
     # read in radices and n from the command line
     radix = []
     for num in sys.argv[1:len(sys.argv) - 1]:
         radix.append(int(num))
     n = int(sys.argv[len(sys.argv) - 1])
+
+    # check for a valid n
+    total = 1
+    for num in radix[1:]: total *= num
+
+    if n < total or n > total * 2 or n % 2 == 0:
+        print('the value of n given is not valid')
+        return
 
     # count odd radices
     odd = sum(1 if x % 2 == 1 else 0 for x in radix)
@@ -577,39 +513,18 @@ if __name__ == "__main__":
 
         print(pretty_print_radix(radix), n)
         new_code = generate_threaded_code(radix, the_code, n)
-        out = pretty_print(new_code)
+        pretty_print(new_code)
 
-        for num in out: print(num)
         valid = valid_codewords(radix, new_code, n) and valid_gray_code(radix, new_code)
         print(valid)
         print(' ')
 
     # one even one odd ex: 2,4,7
     elif odd == 1 and len(radix) == 3 and radix[1] % 2 == 0:
-        for n in range((int(mult/radix[0])+2) | 1, mult, 2):
-            print('N', n)
-
-            out = generate_three_parts(radix, n)
-            out = pretty_print(out)
-            print(out)
-
-            valid = valid_codewords(radix, out, n) and valid_gray_code(radix, out)
-            print(valid)
-            print(' ')
-
-    # one odd one even eg. 2,7,4
-    elif odd == 1 and len(radix) == 3 and radix[1] % 2 == 1:
-        for n in range((int(mult/radix[0])+2) | 1, mult, 2):
-            print('N', n)
-            generate_template(radix)
-
-        # working on the 4 radix 1 even 2 odd case
-    elif len(radix) == 4:
-        n = 71
-        #for n in range((int(mult / radix[0]) + 2) | 1, mult, 2):
-        print('N', n)
+        print(pretty_print_radix(radix), n)
 
         out = generate_three_parts(radix, n)
+        pretty_print(out)
 
         valid = valid_codewords(radix, out, n) and valid_gray_code(radix, out)
         print(valid)
@@ -619,3 +534,5 @@ if __name__ == "__main__":
     else:
         print('the functionality for these radices is not supported')
         print('stay tuned for future implementation')
+
+driver()
