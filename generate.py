@@ -1,4 +1,5 @@
 from radix_operations import *
+from common import *
 
 #####################################################
 #           GRAY CODE GENERATION ALL ODD            #
@@ -6,7 +7,7 @@ from radix_operations import *
 
 # input: radices, entire reflected gray code, n as decimal number
 # output: dense, cyclic gray code for radices up to n
-def generate_threaded_code(radices, code, n):
+def generate_threaded_code(radices: List[int], code: List[List[List[int]]], n: int):
     # check if n too big or small
     largest = 1
     for radix in radices: largest *= radix
@@ -45,11 +46,12 @@ def generate_threaded_code(radices, code, n):
 
 # input: gray code and n as decimal
 # output: an array of the col numbers that are in an ascending sequence
-def in_bottom_ascending_sequence(radices, n):
+# TODO; figure out how in the world this works
+def in_bottom_ascending_sequence(radices: List[int], n: int):
     out = []
 
     # find last number ending in 0 in code less than n
-    last_zero = -1
+    last_zero = []
     for i in range(n-1, 0, -1):
         radix_n = decimal_to_radix(radices, i)
         if radix_n[len(radix_n)-1] == 0:
@@ -66,20 +68,9 @@ def in_bottom_ascending_sequence(radices, n):
 
     return out
 
-# input: entire gray code as list of lists, radices as tuple
-# output: code, but with the given column reflected
-#         columns are counted from the left, 0 indexed
-def reflect_column(code, radices, col_num):
-    out = copy.deepcopy(code)
-    for i in range(len(code[0])):
-        out[0][i][col_num] = radices[col_num] - code[0][i][col_num] - 1
-        out[1][i][col_num] = radices[col_num] - code[1][i][col_num] - 1
-
-    return out
-
 # input: gray code and n as decimal number
 # output: if the gray code should start going right or left
-def calculate_start_direction(code, radices, n):
+def calculate_start_direction(code: List[List[int]], radices: List[int], n: int):
     count = 0
 
     # iterate over numbers ending in 0 at bottom of code
@@ -89,23 +80,3 @@ def calculate_start_direction(code, radices, n):
             count += 1
     if count % 2 == 1: return True
     else: return False
-
-#####################################################
-#           GRAY CODE GENERATION EVEN ODD           #
-#####################################################
-
-# input: radices and n as decimal
-# output: whether the sequence ends in a descending sequence
-#         in the regular reflected gray code
-def in_right_descending_sequence(radices, n):
-    # it will be descending sequence if this is odd
-    # might need to subtract the 1 for 4+ radices
-    if (n - 1) // radices[len(radices)-1] % 2 == 1:
-        return True
-    return False
-
-# input: gray code ast list of lists
-# output: gray code, with given columns (0-indexed) swapped
-def swap_columns(code, col1, col2):
-    for num in code:
-        num[col1], num[col2] = num[col2], num[col1]

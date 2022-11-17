@@ -1,5 +1,6 @@
 from radix_operations import *
 from typing import List
+import copy
 
 #####################################################
 #                  GRAY CODE COMMON                 #
@@ -33,49 +34,36 @@ def generate_reflected_code(radices: List[int]) -> List[List[int]]:
 
     return old_result
 
-# input: gray code output by generate_reflected_code
-# output: gray code, but with all numbers ending in 0 moved to the bottom
-def move_zeros_to_bottom(code: List[List[int]]) -> List[List[int]]:
-    result = []
-
-    # move
-    for num in code[::-1]:
-        if num[len(num)-1] == 0: result.append(num)
-        else: result.insert(0, num)
-
-    return result
-
 # input: tuple of radices
 # output: two gray code columns, one with 0 and one with 1 in front
 def generate_entire_reflected_code(radices: List[int]) -> List[List[List[int]]]:
     code = generate_reflected_code(radices)
-    code = move_zeros_to_bottom(code)
+    code = move_digit_to_bottom(code, len(radices) - 1, 0)
     # prepend 0 and 1 to all numbers
     left = [[0] + num for num in code]
     right = [[1] + num for num in code]
 
     return [left, right]
 
-# input: gray code as list of lists
-# output: return gray code as strings, with letters for numbers > 10
-def pretty_print(code: List[List[List[int]]], radices=[2,4,5], n=10000) -> None:
-    # columns for gray code
-    if len(code) == 2:
-        for i in range(len(code[0])): 
-            print(''.join(decimal_to_letter(s) for s in code[0][i]), end ="    ")
-            # skip number if it's in knockout group
-            if radix_to_decimal(radices, code[1][i]) < n: print(''.join(decimal_to_letter(s) for s in code[1][i]))
-            else: print()
-    # finished gray code
-    else: 
-        for num in code:
-            print(''.join(decimal_to_letter(s) for s in code[0][i]), end ="    ")
+# input: gray code output by generate_reflected_code
+# output: gray code, but with all numbers ending in n for that column moved to the bottom
+# column numbers go from left to right starting at 1
+def move_digit_to_bottom(code: List[List[int]], col_num: int, n: int) -> List[List[int]]:
+    result = []
+    # move
+    for num in code[::-1]:
+        if num[col_num - 1] == n: result.append(num)
+        else: result.insert(0, num)
 
-# input: gray code radix as a list
-# output: string of gray code radices formatted
-def pretty_print_radix(radices: List[int]) -> str:
-    out = '(' + str(radices[0])
-    for r in radices[1:]:
-        out += ', ' + str(r)
-    out += ')'
+    return result
+
+# input: entire gray code as list of lists, radices as tuple
+# output: code, but with the given column reflected
+#         columns are counted from the left, 0 indexed
+def reflect_column(code: List[List[List[int]]], radices: List[int], col_num: int):
+    out = copy.deepcopy(code)
+    for i in range(len(code[0])):
+        out[0][i][col_num] = radices[col_num] - code[0][i][col_num] - 1
+        out[1][i][col_num] = radices[col_num] - code[1][i][col_num] - 1
+
     return out
