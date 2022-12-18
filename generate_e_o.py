@@ -24,14 +24,13 @@ def generate_threaded_code_eo(radices: List[int], code: List[List[List[int]]], n
         return []
 
     # see if we need to flip
-    print(decimal_to_radix(radices, n - 1))
     ascending = radices_to_reflect(radices, n)
-    ascending = [2,3,4]
+    # ascending = [2,3,4]
     print('flipped', ascending)
 
     for i in ascending:
         code = reflect_column(code, radices, i)
-    pretty_print(code, radices, n)
+    # pretty_print(code, radices, n)
     result = []
 
     # calculate start location
@@ -84,26 +83,16 @@ def calculate_start_direction_eo(code: List[List[int]], radices: List[int], n: i
 def radices_to_reflect(radices: List[int], n: int) -> List[int]:
     # get largest number in code
     largest = decimal_to_radix(radices, n - 1)
-
     col_sum = 0
-    parities, out = [], []
+    out = []
 
-    # cumulative sum to determine asc/desc sequences (0 for desc 1 for asc)
+    # cumulative sum to determine which columns to flip
+    # add 1 to account for flips in even radices, if even col is descending
     # ignore first and last cols - they will never flip
     for i, num in enumerate(largest):
         if 1 < i < len(largest) - 1:
-            if col_sum % 2 == 1: parities.append(1)
-            else: parities.append(0)
+            if col_sum % 2 == 0: 
+                out.append(i)
+                if radices[i] % 2 == 0: col_sum += 1
         col_sum += num
-
-    # determine which cols to flip depending on their parity
-
-    # loop through out
-    for i, parity in enumerate(parities):
-        # if descending, add col to flip array, add two since we skipped 0,1
-        if parity == 0: 
-            out.append(i + 2)
-            # if radix is even, flip everything to the right 
-            if radices[i + 2]: 
-                for i in range(len(parities)): parities[i] = (parities[i] + 1) % 2
     return out
