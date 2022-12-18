@@ -46,7 +46,7 @@ def generate_threaded_code(radices: List[int], code: List[List[List[int]]], n: i
 
 # input: gray code and n as decimal
 # output: an array of the col numbers that are in an ascending sequence
-# TODO; figure out how in the world this works
+# TODO; figure out how in the world this works and fix this for 4 at the bottom now
 def in_bottom_ascending_sequence(radices: List[int], n: int):
     out = []
 
@@ -54,17 +54,22 @@ def in_bottom_ascending_sequence(radices: List[int], n: int):
     last_zero = []
     for i in range(n-1, 0, -1):
         radix_n = decimal_to_radix(radices, i)
-        if radix_n[len(radix_n)-1] == 0:
+        if radix_n[len(radix_n)-1] == 4:
             last_zero = radix_n
             break
-
     # loop through last zero and tally number sums
     # if the sum is even, the col is ascending
-    col_sum = 0
+    # TODO: this comment is now wrong
+
     for i, num in enumerate(last_zero):
-        if col_sum % 2 == 0 and 0 < i < len(last_zero)-1:
+        if last_zero[i - 1] % 2 == 1 and 1 < i < len(last_zero) - 1:
             out.append(i)
-        col_sum += num
+
+    # col_sum = 0
+    # for i, num in enumerate(last_zero):
+    #     if col_sum % 2 == 1 and 0 < i < len(last_zero)-1:
+    #         out.append(i)
+    #     col_sum += num
 
     return out
 

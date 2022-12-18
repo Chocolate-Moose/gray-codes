@@ -53,12 +53,35 @@ def driver():
         pretty_print(the_code, radix, n)
 
         new_code = generate_threaded_code_eo(radix, the_code, n)
-        pretty_print(new_code)
+        # pretty_print(new_code)
         
         # validate code
         valid = valid_codewords(radix, new_code, n) and valid_gray_code(radix, new_code)
         print(valid)
         print(' ')
+        """
+        ## redo for other ascending
+        new_code = generate_threaded_code_eo(radix, the_code, n, [2])
+        
+        # validate code
+        valid = valid_codewords(radix, new_code, n) and valid_gray_code(radix, new_code)
+        print(valid)
+        print(' ')
+
+        new_code = generate_threaded_code_eo(radix, the_code, n, [3])
+        
+        # validate code
+        valid = valid_codewords(radix, new_code, n) and valid_gray_code(radix, new_code)
+        print(valid)
+        print(' ')
+
+        new_code = generate_threaded_code_eo(radix, the_code, n, [2,3])
+        
+        # validate code
+        valid = valid_codewords(radix, new_code, n) and valid_gray_code(radix, new_code)
+        print(valid)
+        print(' ')
+        """
 
     # all other cases
     else:
@@ -93,6 +116,6 @@ def test_all_for_radix(radix):
         print(' ')
     print('all cases but first:', works)
 
-# test_all_for_radix([2,4,2,3,5])
+# test_all_for_radix([2,4,2,3,4,5])
 
 driver()
