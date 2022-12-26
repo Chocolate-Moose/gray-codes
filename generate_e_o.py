@@ -23,9 +23,14 @@ def generate_threaded_code_eo(radices: List[int], code: List[List[List[int]]], n
         print('n is out of range of the radix')
         return []
 
+    # special case where inner ring isn't in yet
+    half = largest / radices[0]
+    if n < half + radices[len(radices)-1]-1: 
+        result = inner_ring_case(radices, code, n)
+        return result
+
     # see if we need to flip
     ascending = radices_to_reflect(radices, n)
-    # ascending = [2,3,4]
     print('flipped', ascending)
 
     for i in ascending:
@@ -91,8 +96,36 @@ def radices_to_reflect(radices: List[int], n: int) -> List[int]:
     # ignore first and last cols - they will never flip
     for i, num in enumerate(largest):
         if 1 < i < len(largest) - 1:
-            if col_sum % 2 == 0: 
+           if col_sum % 2 == 0: 
                 out.append(i)
                 if radices[i] % 2 == 0: col_sum += 1
         col_sum += num
     return out
+
+def inner_ring_case(radices: List[int], code: List[List[List[int]]], n: int):
+    # get the 2 of 102 for example
+    pos_line = decimal_to_radix(radices, n)[len(radices)-1] - 1
+
+    # a nifty trick is to reverse the radices after 2 bc generating code
+    # varies the rightmost one the fastest
+    radices_new = [2] + radices[1:][::-1]
+    bottom = generate_reflected_code(radices_new)
+    bottom = [i for i in bottom if i[0] >= pos_line]
+
+    # reverse the order of radices and prepend 0
+    for i in bottom:
+        i.append(0)
+        i.reverse()
+
+    # teeth - take all numbers in top above the line
+    top = [i for i in code[0] if i[len(i)-1] < pos_line]
+
+    bottom.reverse()
+    top.extend(bottom)
+
+    # add in the right side
+    for i in range(top[len(top)-1][len(radices)-1], -1, -1):
+        hi = [1] + [0] * (len(radices) - 2) + [i]
+        top.append(hi)
+    
+    return top
