@@ -93,6 +93,6 @@ def test_all_for_radix(radix):
         print(' ')
     print('all cases:', works)
 
-test_all_for_radix([2,3,5])
+test_all_for_radix([2,8,15])
 
 # driver()

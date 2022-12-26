@@ -108,7 +108,7 @@ def inner_ring_case(radices: List[int], code: List[List[List[int]]], n: int):
 
     # a nifty trick is to reverse the radices after 2 bc generating code
     # varies the rightmost one the fastest
-    radices_new = [2] + radices[1:][::-1]
+    radices_new = [radices[0]] + radices[1:][::-1]
     bottom = generate_reflected_code(radices_new)
     bottom = [i for i in bottom if i[0] >= pos_line]
 
@@ -118,7 +118,15 @@ def inner_ring_case(radices: List[int], code: List[List[List[int]]], n: int):
         i.reverse()
 
     # teeth - take all numbers in top above the line
-    top = [i for i in code[0] if i[len(i)-1] < pos_line]
+    radices_top = [radices[0]] + radices[len(radices)-2:] + radices[1:len(radices)-2][::-1]
+    top = generate_reflected_code(radices_top)
+    top = [i for i in top if i[1] < pos_line]
+
+    # reorder the top
+    for i in top:
+        i.append(0)
+        i.reverse()
+        i[len(i)-1], i[len(i)-2] = i[len(i)-2], i[len(i)-1]
 
     bottom.reverse()
     top.extend(bottom)
