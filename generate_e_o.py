@@ -103,6 +103,7 @@ def radices_to_reflect(radices: List[int], n: int) -> List[int]:
     return out
 
 def inner_ring_case(radices: List[int], code: List[List[List[int]]], n: int):
+    print('inner ring case')
     # get the 2 of 102 for example
     pos_line = decimal_to_radix(radices, n)[len(radices)-1] - 1
 
@@ -127,6 +128,9 @@ def inner_ring_case(radices: List[int], code: List[List[List[int]]], n: int):
         i.append(0)
         i.reverse()
         i[len(i)-1], i[len(i)-2] = i[len(i)-2], i[len(i)-1]
+    
+    print(top, len(top))
+    print(bottom, len(bottom))
 
     bottom.reverse()
     top.extend(bottom)
@@ -136,4 +140,5 @@ def inner_ring_case(radices: List[int], code: List[List[List[int]]], n: int):
         hi = [1] + [0] * (len(radices) - 2) + [i]
         top.append(hi)
     
+    pretty_print(top, radices, n)
     return top

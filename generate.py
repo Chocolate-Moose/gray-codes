@@ -54,7 +54,7 @@ def in_bottom_ascending_sequence(radices: List[int], n: int):
     last_zero = []
     for i in range(n-1, 0, -1):
         radix_n = decimal_to_radix(radices, i)
-        if radix_n[len(radix_n)-1] == 4:
+        if radix_n[len(radix_n)-1] == 0:
             last_zero = radix_n
             break
     # loop through last zero and tally number sums
