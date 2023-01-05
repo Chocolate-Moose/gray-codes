@@ -81,6 +81,8 @@ def generate_gray_code(radix, n, all_odd, to_print):
     valid = valid_codewords(radix, new_code, n) and valid_gray_code(radix, new_code)
     print(valid)
     print(' ')
+    print(' ')
+    print(' ')
 
     return valid
 
