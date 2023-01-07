@@ -6,7 +6,12 @@ from printing import *
 
 def generate_entire_reflected_code_eo(radices: List[int]) -> List[List[List[int]]]:
     code = generate_reflected_code(radices)
-    code = move_digit_to_bottom(code, len(radices) - 1, radices[len(radices)-1]-1)
+    code = move_digit_to_bottom(code, len(radices) - 1, 0)
+
+    # flip last digit because 0s on the bottom
+    # this happens in place
+    reflect_top_half(code, radices)
+
     # prepend 0 and 1 to all numbers
     left = [[0] + num for num in code]
     right = [[1] + num for num in code]
@@ -66,17 +71,23 @@ def generate_threaded_code_eo(radices: List[int], code: List[List[List[int]]], n
 
     return result
 
+# reflects last numbers in the top half of the code that do not end with 0
+# ex: for radices (2,6,5) 004 becomes 001
+def reflect_top_half(code: List[List[int]], radices: List[int]):
+    for i in code:
+        last = i[len(i)-1]
+        if last != 0: i[len(i)-1] = radices[len(radices)-1] - i[len(i)-1]
+
 # input: gray code and n as decimal number
 # output: if the gray code should start going right or left underneath the arm
 # this is where the threading starts on the top after the top ring bit
 # true = go left, false = go right
 def calculate_start_direction_eo(code: List[List[int]], radices: List[int], n: int):
     count = 0
-    largest = radices[len(radices)-1]-1
 
-    # iterate over numbers ending in 4 at bottom of code
+    # iterate over numbers ending in 0 at bottom of code
     for num in code[::-1]:
-        if num[len(num)-1] != largest: break
+        if num[len(num)-1] != 0: break
         elif radix_to_decimal(radices, num) < n:
             count += 1
     if count % 2 == 1: return True
@@ -103,7 +114,6 @@ def radices_to_reflect(radices: List[int], n: int) -> List[int]:
     return out
 
 def inner_ring_case(radices: List[int], code: List[List[List[int]]], n: int):
-    print('inner ring case')
     # get the 2 of 102 for example
     pos_line = decimal_to_radix(radices, n)[len(radices)-1] - 1
 
@@ -128,9 +138,6 @@ def inner_ring_case(radices: List[int], code: List[List[List[int]]], n: int):
         i.append(0)
         i.reverse()
         i[len(i)-1], i[len(i)-2] = i[len(i)-2], i[len(i)-1]
-    
-    print(top, len(top))
-    print(bottom, len(bottom))
 
     bottom.reverse()
     top.extend(bottom)

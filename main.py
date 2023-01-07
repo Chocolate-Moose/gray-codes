@@ -26,6 +26,11 @@ def driver():
             if num == '-': read_n = True
             else: radix.append(int(num))
 
+    # check for when I forget the dash
+    if radix[len(radix)-1] > 20: 
+        print('did you forget the dash')
+        return
+
     # check for a valid n
     total = 1
     for num in radix[1:]: total *= num
@@ -56,7 +61,7 @@ def driver():
 
         for i in range(total, end, 2): 
             # TODO: there is sketchy logic here for other cases
-            all_odd = odd = len(radix) - 1
+            all_odd = (odd == len(radix) - 1)
             valid = generate_gray_code(radix, i, all_odd, False)
             works = works & valid
         print('all cases:', works)
@@ -80,8 +85,6 @@ def generate_gray_code(radix, n, all_odd, to_print):
 
     valid = valid_codewords(radix, new_code, n) and valid_gray_code(radix, new_code)
     print(valid)
-    print(' ')
-    print(' ')
     print(' ')
 
     return valid
