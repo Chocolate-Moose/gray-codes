@@ -1,5 +1,6 @@
 from radix_operations import *
 from common import *
+from printing import *
 
 #####################################################
 #           GRAY CODE GENERATION ALL ODD            #
@@ -17,9 +18,11 @@ def generate_threaded_code(radices: List[int], code: List[List[List[int]]], n: i
 
     # see if we need to flip
     ascending = in_bottom_ascending_sequence(radices, n)
+    # ascending = [3]
     for i in ascending:
         code = reflect_column(code, radices, i)
-
+    print('flipped code')
+    pretty_print(code, radices, n)
     result = []
 
     # calculate start location
@@ -59,9 +62,11 @@ def in_bottom_ascending_sequence(radices: List[int], n: int):
             break
     # loop through last zero and tally number sums
     # if the sum is even, the col is ascending
+    col_sum = 0
     for i, num in enumerate(last_zero):
-        if last_zero[i - 1] % 2 == 1 and 1 < i < len(last_zero) - 1:
+        if col_sum % 2 == 0 and 1 < i < len(last_zero) - 1:
             out.append(i)
+        col_sum += num
 
     # col_sum = 0
     # for i, num in enumerate(last_zero):

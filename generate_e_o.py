@@ -37,7 +37,6 @@ def generate_threaded_code_eo(radices: List[int], code: List[List[List[int]]], n
     # see if we need to flip
     ascending = radices_to_reflect(radices, n)
     print('flipped', ascending)
-
     for i in ascending:
         code = reflect_column(code, radices, i)
     # pretty_print(code, radices, n)
@@ -85,9 +84,13 @@ def reflect_top_half(code: List[List[int]], radices: List[int]):
 def calculate_start_direction_eo(code: List[List[int]], radices: List[int], n: int):
     count = 0
 
+    # either 0 or (5-1)=4 to account for ending digit in lower portion
+    last_number = code[len(code)-1]
+    last_digit = last_number[len(last_number)-1]
+
     # iterate over numbers ending in 0 at bottom of code
     for num in code[::-1]:
-        if num[len(num)-1] != 0: break
+        if num[len(num)-1] != last_digit: break
         elif radix_to_decimal(radices, num) < n:
             count += 1
     if count % 2 == 1: return True
@@ -111,6 +114,10 @@ def radices_to_reflect(radices: List[int], n: int) -> List[int]:
                 out.append(i)
                 if radices[i] % 2 == 0: col_sum += 1
         col_sum += num
+    
+    # we want to reflect last radix when sum is odd??
+    if (col_sum - largest[len(radices)-1]) % 2 == 1:
+        out.append(len(radices)-1)
     return out
 
 def inner_ring_case(radices: List[int], code: List[List[List[int]]], n: int):
@@ -119,9 +126,18 @@ def inner_ring_case(radices: List[int], code: List[List[List[int]]], n: int):
 
     # a nifty trick is to reverse the radices after 2 bc generating code
     # varies the rightmost one the fastest
-    radices_new = [radices[0]] + radices[1:][::-1]
+    # radices_new = [radices[0]] + radices[1:][::-1]
+    # bottom = generate_reflected_code(radices_new)
+    # bottom = [i for i in bottom if i[0] >= pos_line]
+    first_even = 0
+    for i, radix in enumerate(radices):
+        # skip the leading 2
+        if radix % 2 == 0 and i != 0: first_even = i 
+    
+    # leading 2, first even, last digit, hide everything else
+    radices_new = [radices[0]] + [radices[first_even]] + [radices[len(radices)-1]] + radices[first_even+1:len(radices)-1]
     bottom = generate_reflected_code(radices_new)
-    bottom = [i for i in bottom if i[0] >= pos_line]
+    # bottom = [i for i in bottom if i[0] >= pos_line]
 
     # reverse the order of radices and prepend 0
     for i in bottom:

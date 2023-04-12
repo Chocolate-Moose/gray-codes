@@ -7,7 +7,7 @@ from generate_e_o import *
 from printing import *
 
 #####################################################
-#                GRAY CODE TESTING                  #
+#              GRAY CODE DRIVER CODE                #
 #####################################################
 def driver():
     # input error checking
@@ -48,6 +48,7 @@ def driver():
     # last digit is odd
     elif n > 0 and radix[len(radix) - 1] % 2 == 1:
         generate_gray_code(radix, n, False, True)
+        
     # no n given, test all cases
     elif n == 0:
         # end is actually -1 but the range takes care of this
@@ -68,8 +69,8 @@ def driver():
 
     # all other cases
     else:
-        the_code = generate_reflected_code(radix)
-        the_code = generate_entire_reflected_code(the_code)
+        # the_code = generate_reflected_code(radix)
+        the_code = generate_entire_reflected_code(radix)
 
         print(pretty_print_radix(radix), n)
         pretty_print(the_code, radix, n)

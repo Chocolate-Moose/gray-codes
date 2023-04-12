@@ -39,6 +39,7 @@ def generate_reflected_code(radices: List[int]) -> List[List[int]]:
 def generate_entire_reflected_code(radices: List[int]) -> List[List[List[int]]]:
     code = generate_reflected_code(radices)
     code = move_digit_to_bottom(code, len(radices) - 1, 0)
+    
     # prepend 0 and 1 to all numbers
     left = [[0] + num for num in code]
     right = [[1] + num for num in code]
