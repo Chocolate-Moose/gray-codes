@@ -1,6 +1,6 @@
 import sys
 
-from generate import *
+from generate_all_odd import generate_all_odd
 from common import *
 from validation import *
 from generate_e_o import *
@@ -39,18 +39,13 @@ def driver():
         print('the value of n given is not valid')
         return
 
-    # count odd radices
-    odd = sum(1 if x % 2 == 1 else 0 for x in radix)
+    # categorize radices
+    category = categorize_radices(radix)
 
-    # all odd radices ex: 2,5,7,13
-    if n > 0 and odd == len(radix) - 1:
-        generate_gray_code(radix, n, True, True)
-    # last digit is odd
-    elif n > 0 and radix[len(radix) - 1] % 2 == 1:
-        generate_gray_code(radix, n, False, True)
-        
-    # no n given, test all cases
-    elif n == 0:
+    # case where n was given as cli
+    if n > 0: generate_gray_code(radix, n, category)
+    # loop through all possible n
+    else: 
         # end is actually -1 but the range takes care of this
         end = total * 2
 
@@ -61,33 +56,34 @@ def driver():
         works = True
 
         for i in range(total, end, 2): 
-            # TODO: there is sketchy logic here for other cases
-            all_odd = (odd == len(radix) - 1)
-            valid = generate_gray_code(radix, i, all_odd, False)
+            valid = generate_gray_code(radix, i, category)
             works = works & valid
         print('all cases:', works)
 
-    # all other cases
-    else:
-        # the_code = generate_reflected_code(radix)
-        the_code = generate_entire_reflected_code(radix)
+def generate_gray_code(radix: List[int], n: int, category: str):
+    # call correct generate based on category
+    if category == "all_odd": new_code = generate_all_odd(radix, n)
+    elif category == "ending_odd": new_code = generate_ending_odd(radix, n)
+    elif category == "ending_even": new_code = generate_ending_even(radix, n)
+    else: 
+        print('something went wrong, invalid category')
+        new_code = []
 
-        print(pretty_print_radix(radix), n)
-        pretty_print(the_code, radix, n)
-        print('the functionality for these radices is not supported')
-
-def generate_gray_code(radix, n, all_odd, to_print):
-    the_code = generate_entire_reflected_code(radix) if all_odd else generate_entire_reflected_code_eo(radix)
     print(pretty_print_radix(radix), n)
-    if to_print: pretty_print(the_code, radix, n)
-
-    new_code = generate_threaded_code(radix, the_code, n) if all_odd else generate_threaded_code_eo(radix, the_code, n)
-    if to_print: pretty_print(new_code)
-
+    # check for validity of code
     valid = valid_codewords(radix, new_code, n) and valid_gray_code(radix, new_code)
     print(valid)
     print(' ')
 
     return valid
+
+# categories radices as 1 of 3 cases: all_odd, ending_odd, ending_even
+def categorize_radices(radices:List[int]) -> str:
+    # count odd radices
+    odd = sum(1 if x % 2 == 1 else 0 for x in radices)
+
+    if odd == len(radices) - 1: return "all_odd"
+    elif radices[len(radices)-1] % 2 == 1: return "ending_odd"
+    else: return "ending_even"
 
 driver()

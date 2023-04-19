@@ -1,7 +1,7 @@
 from typing import List
 from radix_operations import *
 from common import *
-from generate import *
+from generate_all_odd import *
 from printing import *
 
 def generate_entire_reflected_code_eo(radices: List[int]) -> List[List[List[int]]]:

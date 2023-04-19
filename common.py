@@ -34,18 +34,6 @@ def generate_reflected_code(radices: List[int]) -> List[List[int]]:
 
     return old_result
 
-# input: tuple of radices
-# output: two gray code columns, one with 0 and one with 1 in front
-def generate_entire_reflected_code(radices: List[int]) -> List[List[List[int]]]:
-    code = generate_reflected_code(radices)
-    code = move_digit_to_bottom(code, len(radices) - 1, 0)
-    
-    # prepend 0 and 1 to all numbers
-    left = [[0] + num for num in code]
-    right = [[1] + num for num in code]
-
-    return [left, right]
-
 # input: gray code output by generate_reflected_code
 # output: gray code, but with all numbers ending in n for that column moved to the bottom
 # column numbers go from left to right starting at 1
@@ -61,10 +49,9 @@ def move_digit_to_bottom(code: List[List[int]], col_num: int, n: int) -> List[Li
 # input: entire gray code as list of lists, radices as tuple
 # output: code, but with the given column reflected
 #         columns are counted from the left, 0 indexed
+# might need the deepcopy idk
 def reflect_column(code: List[List[List[int]]], radices: List[int], col_num: int):
-    out = copy.deepcopy(code)
     for i in range(len(code[0])):
-        out[0][i][col_num] = radices[col_num] - code[0][i][col_num] - 1
-        out[1][i][col_num] = radices[col_num] - code[1][i][col_num] - 1
+        code[0][i][col_num] = radices[col_num] - code[0][i][col_num] - 1
+        code[1][i][col_num] = radices[col_num] - code[1][i][col_num] - 1
 
-    return out
