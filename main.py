@@ -1,9 +1,9 @@
 import sys
 
 from generate_all_odd import generate_all_odd
+from generate_ending_odd import generate_ending_odd
 from common import *
 from validation import *
-from generate_e_o import *
 from printing import *
 
 #####################################################
