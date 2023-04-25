@@ -29,7 +29,7 @@ def stitch_code(radices: List[int], code: List[List[List[int]]], n: int):
     result = []
 
     # calculate start location
-    right = calculate_start_direction(code[1], radices, n)
+    right = calculate_start_direction(code[1], radices, len(radices)-1, n)
     if right: row, col = 0,1
     else: row, col = 0,0
 

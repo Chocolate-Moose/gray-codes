@@ -48,7 +48,7 @@ def stitch_code(radices: List[int], code: List[List[List[int]]], n: int):
         return []
 
     # calculate start location
-    right = calculate_start_direction(code[1], radices, n)
+    right = calculate_start_direction(code[1], radices, len(radices)-1, n)
     if right: row, col = radices[len(radices)-1]-1, 0
     else: row, col = radices[len(radices)-1]-1, 1
 

@@ -30,15 +30,12 @@ def generate_ending_even(radices: List[int], n: int) -> List[List[int]]:
 # output: dense, cyclic gray code for radices up to n
 def stitch_code(radices: List[int], code: List[List[List[int]]], rightmost_odd: int, n: int):
     result = []
-    print('code', code)
 
     # calculate start location, start stitching from top
     right = calculate_start_direction(code[1], radices, rightmost_odd, n)
-    if right: row, col = 0, 1
-    else: row, col = 0, 0
+    if right: row, col = 0, 0
+    else: row, col = 0, 1
 
-    # append the inner chunk 
-    # calculate inner chunk conditions here
     len_inner_chunk = math.prod(radices[rightmost_odd+1:])
         
     # stitch code together
@@ -55,25 +52,11 @@ def stitch_code(radices: List[int], code: List[List[List[int]]], rightmost_odd: 
 
         row += 1
 
-    print(result)
-
     # loop in inner chunk
-    result.extend(code[1][0:radices[len(radices)-1]-1][::-1])
-    result.extend(code[0][0:radices[len(radices)-1]-1])
+    inner_chunk = code[1][len(code[0]) - len_inner_chunk:]
+    inner_chunk.extend(code[0][len(code[0]) - len_inner_chunk:][::-1])
     if not right: result.reverse()
 
+    result.extend(inner_chunk)
+
     return result
-
-# input: gray code and n as decimal number
-# output: if the gray code should start going right or left
-def calculate_start_direction(code: List[List[int]], radices: List[int], rightmost_odd: int, n: int):
-    count = 0
-    constant = code[len(code)-1][rightmost_odd]
-
-    # iterate over numbers with 0 at bottom of code
-    for num in code[::-1]:
-        if num[rightmost_odd] != constant: break
-        elif radix_to_decimal(radices, num) < n:
-            count += 1
-    if count % 2 == 0: return True
-    else: return False

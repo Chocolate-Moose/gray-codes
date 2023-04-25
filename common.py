@@ -75,15 +75,16 @@ def reflect_columns(code: List[List[List[int]]], radices: List[int], n: int):
 
 # input: gray code and n as decimal number
 # output: if the gray code should start going right or left
-def calculate_start_direction(code: List[List[int]], radices: List[int], n: int):
+def calculate_start_direction(code: List[List[int]], radices: List[int], rightmost_odd: int, n: int):
     count = 0
     # whatever digit is constant in lower portion
-    constant = code[len(code)-1][len(code[len(code)-1])-1]
+    constant = code[len(code)-1][rightmost_odd]
 
     # iterate over numbers ending in 0 at bottom of code
     for num in code[::-1]:
-        if num[len(num)-1] != constant: break
+        if num[rightmost_odd] != constant: break
         elif radix_to_decimal(radices, num) < n:
             count += 1
+
     if count % 2 == 1: return True
     else: return False
