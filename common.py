@@ -56,8 +56,6 @@ def reflect_column(code: List[List[List[int]]], radices: List[int], col_num: int
 
 # input: 
 # output: the code but with all columns in ascending sequences reflected
-# input: gray code and n as decimal
-# output: what columns need to be reflected (based on order of sequences of n-1)
 def reflect_columns(code: List[List[List[int]]], radices: List[int], n: int):
     largest_remaining_codeword = decimal_to_radix(radices, n-1)
 
@@ -65,8 +63,7 @@ def reflect_columns(code: List[List[List[int]]], radices: List[int], n: int):
     ascending = []
     # when cumulative sum is even, flip
     for i, num in enumerate(largest_remaining_codeword):
-        # TODO: should this go up to len of largest remaining codeword?
-        if col_sum % 2 == 0 and 1 < i < len(largest_remaining_codeword) - 1:
+        if col_sum % 2 == 0 and 1 < i < len(largest_remaining_codeword):
             ascending.append(i)
             # add 1 for flip when even radix
             if radices[i] % 2 == 0: col_sum += 1
@@ -78,13 +75,14 @@ def reflect_columns(code: List[List[List[int]]], radices: List[int], n: int):
 
 # input: gray code and n as decimal number
 # output: if the gray code should start going right or left
-# TODO; generalize to other radices
 def calculate_start_direction(code: List[List[int]], radices: List[int], n: int):
     count = 0
+    # whatever digit is constant in lower portion
+    constant = code[len(code)-1][len(code[len(code)-1])-1]
 
     # iterate over numbers ending in 0 at bottom of code
     for num in code[::-1]:
-        if num[len(num)-1] != 0: break
+        if num[len(num)-1] != constant: break
         elif radix_to_decimal(radices, num) < n:
             count += 1
     if count % 2 == 1: return True
