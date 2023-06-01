@@ -1,6 +1,7 @@
 from radix_operations import *
 from common import *
 from printing import *
+from generate_e_o import inner_ring_case
 
 #####################################################
 #         GRAY CODE GENERATION ENDING ODD           #
@@ -44,8 +45,8 @@ def stitch_code(radices: List[int], code: List[List[List[int]]], n: int):
     # special case where inner ring isn't in yet
     half = largest / radices[0]
     if n < half + radices[len(radices)-1]-1: 
-        print('inner chunkxs')
-        return []
+        code = inner_ring_case(radices, code, n)
+        return code
 
     # calculate start location
     right = calculate_start_direction(code[1], radices, len(radices)-1, n)

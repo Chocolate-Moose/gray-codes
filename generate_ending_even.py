@@ -22,7 +22,7 @@ def generate_ending_even(radices: List[int], n: int) -> List[List[int]]:
     # 3: reflect columns as needed
     reflect_columns(code, radices, n)
 
-    # # 2/4: make knockout group, stitch all remaining codewords
+    # 2/4: make knockout group, stitch all remaining codewords
     new_code = stitch_code(radices, code, rightmost_odd, n)
     return new_code
 
